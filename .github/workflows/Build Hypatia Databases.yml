@@ -28,16 +28,16 @@ jobs:
 
       - name: Organize Directories & Static Sources
         run: |
-          mkdir -p "${{ github.workspace }}/raw/"
+          mkdir -p "${{ github.workspace }}/keep.data/"
           mkdir -p "${{ github.workspace }}/exclusions/"
           mkdir -p "${{ github.workspace }}/various/"
           mkdir -p "${{ github.workspace }}/domains/"
 
-          # 确保 raw 目录中含有 keep.php 占位文件
-          touch "${{ github.workspace }}/raw/keep.php"
+          # 在 keep.data 目录中创建 keep.php 占位文件
+          touch "${{ github.workspace }}/keep.data/keep.php"
 
           if [ -d "${{ github.workspace }}/static" ]; then
-            cp ${{ github.workspace }}/static/* "${{ github.workspace }}/raw/" || true
+            cp ${{ github.workspace }}/static/* "${{ github.workspace }}/keep.data/" || true
           fi
       
       - name: DATABASE PREPARATION - ClamAV
@@ -52,10 +52,10 @@ jobs:
           fi
 
           mv /tmp/mss/*.fp* "${{ github.workspace }}/exclusions/" || true
-          mv /tmp/mss/*.hsb "${{ github.workspace }}/raw/" || true
-          mv /tmp/mss/*.hdb "${{ github.workspace }}/raw/" || true
-          mv /tmp/mss/*.hdu "${{ github.workspace }}/raw/" || true
-          mv /tmp/mss/*.hsu "${{ github.workspace }}/raw/" || true
+          mv /tmp/mss/*.hsb "${{ github.workspace }}/keep.data/" || true
+          mv /tmp/mss/*.hdb "${{ github.workspace }}/keep.data/" || true
+          mv /tmp/mss/*.hdu "${{ github.workspace }}/keep.data/" || true
+          mv /tmp/mss/*.hsu "${{ github.workspace }}/keep.data/" || true
 
       - name: DATABASE PREPARATION - ESET
         run: |
@@ -77,29 +77,29 @@ jobs:
             find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha1 hsb' \; || true
             find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha256 hsb' \; || true
             
-            [ -f "${{ github.workspace }}/various/eset.md5" ] && cp "${{ github.workspace }}/various/eset.md5" "${{ github.workspace }}/raw" || true
-            [ -f "${{ github.workspace }}/various/eset.sha1" ] && cp "${{ github.workspace }}/various/eset.sha1" "${{ github.workspace }}/raw" || true
-            [ -f "${{ github.workspace }}/various/eset.sha256" ] && cp "${{ github.workspace }}/various/eset.sha256" "${{ github.workspace }}/raw" || true
+            [ -f "${{ github.workspace }}/various/eset.md5" ] && cp "${{ github.workspace }}/various/eset.md5" "${{ github.workspace }}/keep.data" || true
+            [ -f "${{ github.workspace }}/various/eset.sha1" ] && cp "${{ github.workspace }}/various/eset.sha1" "${{ github.workspace }}/keep.data" || true
+            [ -f "${{ github.workspace }}/various/eset.sha256" ] && cp "${{ github.workspace }}/various/eset.sha256" "${{ github.workspace }}/keep.data" || true
           fi
 
       - name: DATABASE PREPARATION - Signature-Base
         run: |
-          wget https://raw.githubusercontent.com/Neo23x0/signature-base/refs/heads/master/iocs/hash-iocs.txt -O "${{ github.workspace }}/raw/signature-base.loki" || true
+          wget https://raw.githubusercontent.com/Neo23x0/signature-base/refs/heads/master/iocs/hash-iocs.txt -O "${{ github.workspace }}/keep.data/signature-base.loki" || true
 
       - name: DATABASE PREPARATION - ThreatView
         run: |
           wget "https://threatview.io/Downloads/MD5-HASH-ALL.txt" -O - 2>/dev/null | sed 's/MD5 of //' >> "${{ github.workspace }}/various/threatview.md5" || true
           wget "https://threatview.io/Downloads/SHA-HASH-FEED.txt" -O - 2>/dev/null >> "${{ github.workspace }}/various/threatview.sha1" || true
 
-          sort -u -o "${{ github.workspace }}/raw/threatview.md5" "${{ github.workspace }}/various/threatview.md5" || true
-          sort -u -o "${{ github.workspace }}/raw/threatview.sha1" "${{ github.workspace }}/various/threatview.sha1" || true
+          sort -u -o "${{ github.workspace }}/keep.data/threatview.md5" "${{ github.workspace }}/various/threatview.md5" || true
+          sort -u -o "${{ github.workspace }}/keep.data/threatview.sha1" "${{ github.workspace }}/various/threatview.sha1" || true
 
       - name: DATABASE PREPARATION - ThreatFox
         run: |
           wget "https://threatfox.abuse.ch/export/csv/sha256/full/" -O "${{ github.workspace }}/various/download_threatfox.zip" || true
           if [ -f "${{ github.workspace }}/various/download_threatfox.zip" ]; then
             unzip -o "${{ github.workspace }}/various/download_threatfox.zip" -d "${{ github.workspace }}/various/" || true
-            [ -f "${{ github.workspace }}/various/full_sha256.csv" ] && tail -n +10 "${{ github.workspace }}/various/full_sha256.csv" | awk '{ print $4 } ' | sed 's/^"//' | sed 's/",$//' > "${{ github.workspace }}/raw/threatfox.sha256" || true
+            [ -f "${{ github.workspace }}/various/full_sha256.csv" ] && tail -n +10 "${{ github.workspace }}/various/full_sha256.csv" | awk '{ print $4 } ' | sed 's/^"//' | sed 's/",$//' > "${{ github.workspace }}/keep.data/threatfox.sha256" || true
           fi
 
       - name: DATABASE PREPARATION - MalwareBazaar
@@ -107,7 +107,7 @@ jobs:
           wget "https://bazaar.abuse.ch/export/txt/sha256/full/" -O "${{ github.workspace }}/various/download_bazaar.zip" || true
           if [ -f "${{ github.workspace }}/various/download_bazaar.zip" ]; then
             unzip -o "${{ github.workspace }}/various/download_bazaar.zip" -d "${{ github.workspace }}/various/" || true
-            [ -f "${{ github.workspace }}/various/full_sha256.txt" ] && mv "${{ github.workspace }}/various/full_sha256.txt" "${{ github.workspace }}/raw/malware_bazaar.sha256" || true
+            [ -f "${{ github.workspace }}/various/full_sha256.txt" ] && mv "${{ github.workspace }}/various/full_sha256.txt" "${{ github.workspace }}/keep.data/malware_bazaar.sha256" || true
           fi
 
       - name: DATABASE PREPARATION - Stalkerware
@@ -117,10 +117,10 @@ jobs:
             while IFS=, read -r col1SHA col2Package col3Certificate col4Version col5Name
             do
               if [ -n "$col1SHA" ] && [ -n "$col5Name" ]; then
-                echo "$col1SHA:0:$col5Name" >> "${{ github.workspace }}/raw/stalkerware.hsb";
+                echo "$col1SHA:0:$col5Name" >> "${{ github.workspace }}/keep.data/stalkerware.hsb";
               fi;
             done < "${{ github.workspace }}/various/stalkerware.csv";
-            sed -i '1d' "${{ github.workspace }}/raw/stalkerware.hsb" || true
+            sed -i '1d' "${{ github.workspace }}/keep.data/stalkerware.hsb" || true
           fi
 
       - name: DATABASE PREPARATION - Sanesecurity
@@ -132,26 +132,26 @@ jobs:
 
           for f in *.hsb; do
             [ -e "$f" ] || continue
-            echo "" >> "${{ github.workspace }}/raw/sanesecurity-$f";
-            cat "$f" >> "${{ github.workspace }}/raw/sanesecurity-$f";
-            sort -u -o "${{ github.workspace }}/raw/sanesecurity-$f" "${{ github.workspace }}/raw/sanesecurity-$f";
+            echo "" >> "${{ github.workspace }}/keep.data/sanesecurity-$f";
+            cat "$f" >> "${{ github.workspace }}/keep.data/sanesecurity-$f";
+            sort -u -o "${{ github.workspace }}/keep.data/sanesecurity-$f" "${{ github.workspace }}/keep.data/sanesecurity-$f";
           done
 
           for f in *.hdb; do
             [ -e "$f" ] || continue
-            echo "" >> "${{ github.workspace }}/raw/sanesecurity-$f";
-            cat "$f" >> "${{ github.workspace }}/raw/sanesecurity-$f";
-            sort -u -o "${{ github.workspace }}/raw/sanesecurity-$f" "${{ github.workspace }}/raw/sanesecurity-$f";
+            echo "" >> "${{ github.workspace }}/keep.data/sanesecurity-$f";
+            cat "$f" >> "${{ github.workspace }}/keep.data/sanesecurity-$f";
+            sort -u -o "${{ github.workspace }}/keep.data/sanesecurity-$f" "${{ github.workspace }}/keep.data/sanesecurity-$f";
           done
 
-          rm -v ${{ github.workspace }}/raw/sanesecurity-crdfam.clamav.hdb ${{ github.workspace }}/raw/sanesecurity-doppelstern.hdb ${{ github.workspace }}/raw/sanesecurity-malware.expert.hdb 2>/dev/null || true
+          rm -v ${{ github.workspace }}/keep.data/sanesecurity-crdfam.clamav.hdb ${{ github.workspace }}/keep.data/sanesecurity-doppelstern.hdb ${{ github.workspace }}/keep.data/sanesecurity-malware.expert.hdb 2>/dev/null || true
       
       - name: DATABASE PREPERATION - Avast Covid-19 IOC
         run: |
           git clone https://github.com/avast/covid-19-ioc.git /tmp/covid-19-ioc || true
           if [ -d "/tmp/covid-19-ioc/datasets/android" ]; then
             cd "/tmp/covid-19-ioc/datasets/android"
-            tail -n +2 *.csv 2>/dev/null | sed 's/,/ , /' | awk '{ print $1 }' | sort -u >> "${{ github.workspace }}/raw/avast-covid19.sha256" || true
+            tail -n +2 *.csv 2>/dev/null | sed 's/,/ , /' | awk '{ print $1 }' | sort -u >> "${{ github.workspace }}/keep.data/avast-covid19.sha256" || true
           fi
 
       - name: DATABASE PREPERATION - Targeted Threats
@@ -162,8 +162,8 @@ jobs:
             if [ -f "samples.csv" ]; then
               while IFS=, read -r col1MD5 col2SHA256 col3Family col4Actor col5Country col6Report
               do
-                col4Actor=$(sed -e 's/^"//' -e 's/"$//' <<< "$col4Actor");
-                col3Family=$(sed -e 's/^"//' -e 's/"$//' <<< "$col3Family");
+                col4Actor=$(sed -e 's/^"//' -e 's/$//' <<< "$col4Actor");
+                col3Family=$(sed -e 's/^"//' -e 's/$//' <<< "$col3Family");
                 if [ -n "$col4Actor" ] && [ -n "$col3Family" ]; then
                     description="$col4Actor-$col3Family";
                 elif [ -n "$col4Actor" ] && [ -z "$col3Family" ]; then
@@ -177,16 +177,16 @@ jobs:
               
                 col1MD5=$(sed -e 's/^"//' -e 's/$//' <<< "$col1MD5");
                 if [ -n "$col1MD5" ]; then
-                    echo "$col1MD5:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hdb;
+                    echo "$col1MD5:0:$description" >> ${{ github.workspace }}/keep.data/targetedthreats.hdb;
                 fi;
               
                 col2SHA256=$(sed -e 's/^"//' -e 's/$//' <<< "$col2SHA256");
                 if [ -n "$col2SHA256" ]; then
-                    echo "$col2SHA256:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hsb;
+                    echo "$col2SHA256:0:$description" >> ${{ github.workspace }}/keep.data/targetedthreats.hsb;
                 fi;
               done < samples.csv;
-              sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hdb || true
-              sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hsb || true
+              sed -i '1d' ${{ github.workspace }}/keep.data/targetedthreats.hdb || true
+              sed -i '1d' ${{ github.workspace }}/keep.data/targetedthreats.hsb || true
             fi
           fi
 
@@ -197,7 +197,7 @@ jobs:
       - name: GENERATE HYPATIA SIGNATURE DATABASES
         run: |
           mvn clean compile -B --no-transfer-progress
-          mvn exec:java -B --no-transfer-progress -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/"
+          mvn exec:java -B --no-transfer-progress -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/keep.data/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/"
           
           mkdir -p "${{ github.workspace }}/various/"
           echo "Build Success" > "${{ github.workspace }}/various/generation_report.txt"
@@ -207,12 +207,8 @@ jobs:
 
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">"${{ github.workspace }}/various/database_generation_ci.txt"
 
-      - name: Move Artifacts, Export gpg.key, Sign and Sync to raw/
+      - name: Sign Binaries, Export gpg.key and Move All to keep.data
         run: |
-          cp -f "${{ github.workspace }}/raw/"hypatia-*.bin "${{ github.workspace }}/" || true
-          cp -f "${{ github.workspace }}/various/generation_report.html" "${{ github.workspace }}/" || true
-          cp -f "${{ github.workspace }}/various/database_generation_ci.txt" "${{ github.workspace }}/" || true
-          
           GEN_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "$GEN_TIME" > "${{ github.workspace }}/generation_time.html"
           
@@ -226,27 +222,22 @@ jobs:
             echo "Importing GPG Private Key..."
             echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import || true
             
-            echo "Exporting public gpg.key..."
-            gpg --armor --export > "${{ github.workspace }}/gpg.key"
+            echo "Exporting public gpg.key to keep.data..."
+            gpg --armor --export > "${{ github.workspace }}/keep.data/gpg.key"
             
-            for bin in ${{ github.workspace }}/hypatia-*.bin; do
+            for bin in ${{ github.workspace }}/keep.data/hypatia-*.bin; do
               if [ -f "$bin" ]; then
                 echo "Signing $bin ..."
                 rm -f "$bin.sig"
-                gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign "$bin"
-                
-                # 同时将签名复制到 raw/ 目录中并命名为 bin.sig 或对应签名
-                cp -f "$bin.sig" "${{ github.workspace }}/raw/$(basename $bin).sig" || true
+                gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GGP_PASSPHRASE || secrets.GPG_PASSPHRASE }}" --detach-sign "$bin"
+                mv -f "${{ github.workspace }}/keep.data/"*.sig "${{ github.workspace }}/keep.data/" 2>/dev/null || true
               fi
             done
-            
-            # 将公钥同步一份到 raw/ 目录中并命名为 key
-            cp -f "${{ github.workspace }}/gpg.key" "${{ github.workspace }}/raw/key" || true
           else
             echo "GPG_PRIVATE_KEY secret is missing, skipping gpg.key export and signing."
           fi
 
-      - name: Commit and Push to main branch
+      - name: Commit and Push Clean Root & keep.data Assets to main
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -254,15 +245,15 @@ jobs:
           cd "${{ github.workspace }}"
           
           git status
-          git add hypatia-*.bin hypatia-*.bin.sig gpg.key raw/key raw/*.sig raw/keep.php generation_report.html database_generation_ci.txt index.html generation_time.html 2>/dev/null || true
+          # 根目录只提交 index.html，其余所有的 .bin、.sig、gpg.key 全部存放在 keep.data/ 目录中
+          git add index.html keep.data/ 2>/dev/null || true
           
-          # 清理临时文件，同时放行根目录及 raw/ 中的必要产物
-          git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e raw/ -e exclusions/ -e domains/ -e src/ -e pom.xml -e hypatia-*.bin -e hypatia-*.bin.sig -e gpg.key -e index.html -e generation_report.html -e database_generation_ci.txt -e generation_time.html 2>/dev/null || true
+          git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e keep.data/ -e exclusions/ -e domains/ -e src/ -e pom.xml -e index.html 2>/dev/null || true
           
           if git diff --staged --quiet && [ -z "$(git status --porcelain)" ]; then
             echo "No changes to commit."
           else
             git add -A
-            git commit -m "Auto-update Hypatia databases, signatures, gpg.key and raw assets [skip ci]"
+            git commit -m "Auto-update databases, signatures and gpg.key inside keep.data [skip ci]"
             git push origin main --force
           fi
