@@ -168,7 +168,7 @@ jobs:
                 elif [ -z "$col4Actor" ] && [ -n "$col3Family" ]; then
                     description="$col3Family";
                 fi;
-                if [ -z "$description" ]; me
+                if [ -z "$description" ]; then
                     description="targetedthreats";
                 fi;
               
@@ -229,7 +229,6 @@ jobs:
           git status
           git add hypatia-*.bin generation_report.html database_generation_ci.txt index.html generation_time.html 2>/dev/null || true
           
-          # 清理临时中间文件，同时保留自定义 raw/ 目录、源码 src/、static/ 和 pom.xml
           git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e raw/ -e exclusions/ -e domains/ -e src/ -e pom.xml -e hypatia-*.bin -e index.html -e generation_report.html -e database_generation_ci.txt -e generation_time.html 2>/dev/null || true
           
           if git diff --staged --quiet && [ -z "$(git status --porcelain)" ]; then
