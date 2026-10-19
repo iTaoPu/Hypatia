@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index of / Hypatia Databases Hub</title>
+    <style>
+        :root {
+            --bg-color: #080c14;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --accent-purple: #c084fc;
+            --tr-hover: rgba(56, 189, 248, 0.04);
+            --badge-bg: rgba(56, 189, 248, 0.1);
+            --badge-border: rgba(56, 189, 248, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg-color) 75%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+        }
+
+        header {
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        /* 简介与特色卡片区 */
+        .intro-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .intro-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .intro-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .intro-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* 主体表格卡片 */
+        .card-table {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: var(--tr-hover);
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .file-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .file-icon {
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            color: var(--accent-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .badge:hover {
+            background: var(--accent-color);
+            color: #080c14;
+            text-decoration: none;
+        }
+
+        .badge-sig {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .badge-sig:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 0 5px;
+        }
+
+        .footer a {
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 10px; }
+            th, td { padding: 12px 14px; }
+            .intro-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Index of / Hypatia Databases</h1>
+            <div class="subtitle">Automated High-Performance Security Signatures & Bloom Filters Hub &bull; Last Synced: {{GENERATION_TIME}} UTC</div>
+        </header>
+
+        <!-- 项目简介板块 -->
+        <div class="intro-grid">
+            <div class="intro-card">
+                <h3>🛡️ About Hypatia Engine</h3>
+                <p>Hypatia 是一个高性能的威胁情报与安全特征库匹配项目。本仓库通过全自动 CI 流水线定时聚合全球多方恶意软件情报源，编译为高效率的二进制布隆过滤器。</p>
+            </div>
+            <div class="intro-card">
+                <h3>🔐 Security & Verification</h3>
+                <p>所有生成的二进制数据库文件均经过严格的数字签名处理。您可配合页面提供的 <code>gpg.key</code> 公钥在本地验证其完整性与官方身份归属。</p>
+            </div>
+        </div>
+
+        <!-- 目录表格板块 -->
+        <div class="card-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="45%">File Name</th>
+                        <th width="30%">Last Modified (UTC)</th>
+                        <th width="25%">Actions / Signatures</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 返回上级目录 -->
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📁</span>
+                                <a href="../">Parent Directory</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">-</td>
+                        <td>-</td>
+                    </tr>
+                    <!-- hypatia 文件夹 -->
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📁</span>
+                                <a href="hypatia/">hypatia/</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td><span style="font-size: 0.85rem; color: var(--text-muted);">Storage & Raw Hub</span></td>
+                    </tr>
+                    <!-- 特征库文件与签名 -->
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📦</span>
+                                <a href="hypatia/hypatia-md5-bloom.bin">hypatia-md5-bloom.bin</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="hypatia/hypatia-md5-bloom.bin.sig" class="badge badge-sig">.sig</a>
+                                <a href="hypatia/hypatia-md5-bloom.bin" class="badge">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📦</span>
+                                <a href="hypatia/hypatia-sha256-bloom.bin">hypatia-sha256-bloom.bin</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="hypatia/hypatia-sha256-bloom.bin.sig" class="badge badge-sig">.sig</a>
+                                <a href="hypatia/hypatia-sha256-bloom.bin" class="badge">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📦</span>
+                                <a href="hypatia/hypatia-domains-bloom.bin">hypatia-domains-bloom.bin</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="hypatia/hypatia-domains-bloom.bin.sig" class="badge badge-sig">.sig</a>
+                                <a href="hypatia/hypatia-domains-bloom.bin" class="badge">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">🔑</span>
+                                <a href="hypatia/gpg.key">gpg.key</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td>
+                            <a href="hypatia/gpg.key" class="badge">Public Key</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <span>Powered by Hypatia Engine & GitHub Actions</span>
+            <a href="{{CI_BUILD_URL}}" target="_blank">View CI Build Logs ↗</a>
+        </div>
+    </div>
+
+</body>
+</html>
