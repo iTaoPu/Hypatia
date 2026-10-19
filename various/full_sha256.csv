@@ -1,12 +1,22 @@
 ################################################################
 # ThreatFox IOCs: SHA256 hashes - CSV format (full dump)       #
-# Last updated: 2026-10-19 12:31:19 UTC                        #
+# Last updated: 2026-10-19 13:42:04 UTC                        #
 #                                                              #
 # Terms Of Use: https://threatfox.abuse.ch/faq/#tos            #
 # For questions please contact threatfox [at] abuse.ch         #
 ################################################################
 #
 # "first_seen_utc","ioc_id","ioc_value","ioc_type","threat_type","fk_malware","malware_alias","malware_printable","last_seen_utc","confidence_level","is_compromised","reference","tags","anonymous","reporter"
+"2026-10-19 13:42:04", "1974340", "39c8844fdc6d60a34652d4fd10020a7e4eb709d756b6eb5d9742c0c187e8a14d", "sha256_hash", "payload", "osx.amos", "Atomic macOS Stealer", "AMOS", "", "100", "False", "https://www.virustotal.com/gui/file/39c8844fdc6d60a34652d4fd10020a7e4eb709d756b6eb5d9742c0c187e8a14d", "AMOS,ClickFix,Foxveil,macOS,willow", "0", "c4ffeine"
+"2026-10-19 13:38:39", "1974336", "5a35a7d01bf531ebc10ed7caaa9c5cf54333659cb00b24098f8d0cbd1afbc419", "sha256_hash", "payload", "osx.amos", "Atomic macOS Stealer", "AMOS", "", "100", "False", "https://www.virustotal.com/gui/file/5a35a7d01bf531ebc10ed7caaa9c5cf54333659cb00b24098f8d0cbd1afbc419", "AMOS,ClickFix,Foxveil,macOS,quill", "0", "c4ffeine"
+"2026-10-19 13:25:03", "1974327", "08e7c04e22c51313e5095f2db39e11fcc59adf56a63481ae92d8730e2788edc7", "sha256_hash", "payload", "osx.amos", "Atomic macOS Stealer", "AMOS", "", "100", "False", "https://www.virustotal.com/gui/file/08e7c04e22c51313e5095f2db39e11fcc59adf56a63481ae92d8730e2788edc7", "AMOS,ClickFix,Foxveil,macOS", "0", "c4ffeine"
+"2026-10-19 13:25:02", "1974326", "d471401d8aee89447a9617a1b62fb393610627f89b6c6e983903479a9e186146", "sha256_hash", "payload", "osx.amos", "Atomic macOS Stealer", "AMOS", "", "100", "False", "https://www.virustotal.com/gui/file/08e7c04e22c51313e5095f2db39e11fcc59adf56a63481ae92d8730e2788edc7", "AMOS,ClickFix,Foxveil,macOS", "0", "c4ffeine"
+"2026-10-19 13:01:48", "1974280", "7123E1514B939B165985560057FE3C761440A9FFF9783A3B84E861FD2888D4AB", "sha256_hash", "payload", "win.acr_stealer", "None", "ACR Stealer", "", "100", "False", "https://www.virustotal.com/gui/file/7123e1514b939b165985560057fe3c761440a9fff9783a3b84e861fd2888d4ab/community", "acr,ACRStealer,fake game setup,ROM,setup.exe", "0", "Tomer56"
+"2026-10-19 12:54:15", "1974303", "1dd5b4f03f2697551b658182d5b594697556b7628786fccd13f26478c88aa985", "sha256_hash", "payload", "elf.mirai", "Katana", "Mirai", "", "90", "False", "None", "elf,Mirai", "0", "whack_sh"
+"2026-10-19 12:54:14", "1974302", "50cb154cff572686b3b8d0d4912c8ef77ddd2f637fec5338e541e7c0f7f00988", "sha256_hash", "payload", "win.quasar_rat", "CinaRAT,QuasarRAT,Yggdrasil", "Quasar RAT", "", "80", "False", "None", "js,ps1,QuasarRAT", "0", "whack_sh"
+"2026-10-19 12:54:13", "1974301", "43cdd21e7edc48ea7f04e16b307961ac78613d8e3555cbb6d74fa879298b5765", "sha256_hash", "payload", "win.masslogger", "None", "MASS Logger", "", "80", "False", "None", "MASSLogger,ps1", "0", "whack_sh"
+"2026-10-19 12:54:12", "1974300", "216d9519b7cc4cf25331ac6a710d361f4a7fc261157240c5c5ee90c8330ebe05", "sha256_hash", "payload", "win.formbook", "win.xloader", "Formbook", "", "75", "False", "None", "Formbook,ps1", "0", "whack_sh"
+"2026-10-19 12:54:11", "1974299", "fc255863ceab40f2510ddf29801e583015505861777f1c5d7e72ec164920f075", "sha256_hash", "payload", "win.asyncrat", "None", "AsyncRAT", "", "95", "False", "None", "AsyncRAT,cloaked,exe", "0", "whack_sh"
 "2026-10-19 12:31:19", "1974290", "ec9c2e0489358859de1577405540a384d5a2e3cb094dbe3892bfea437a3927f3", "sha256_hash", "payload", "osx.amos", "Atomic macOS Stealer", "AMOS", "", "100", "False", "https://www.virustotal.com/gui/file/ec9c2e0489358859de1577405540a384d5a2e3cb094dbe3892bfea437a3927f3", "AMOS,ClickFix,Foxveil,macOS,quill", "0", "c4ffeine"
 "2026-10-19 12:18:54", "1974278", "7d479a9f348ca2f64e26a75eb1ac5451cc98d2a2919973b700f4eaabc5678ccc", "sha256_hash", "payload", "elf.mirai", "Katana", "Mirai", "", "80", "False", "https://honeylabs.net/lookup/143.20.154.42", "elf,iot", "0", "HoneyLabs"
 "2026-10-19 12:18:53", "1974277", "0f59b664ae66ac3240a396a56c2ad2506b691eac51928f3ef3c0ada18bd5fc4b", "sha256_hash", "payload", "elf.mirai", "Katana", "Mirai", "", "80", "False", "https://honeylabs.net/lookup/143.20.154.42", "elf,iot", "0", "HoneyLabs"
@@ -31122,4 +31132,4 @@
 "2021-04-01 10:00:30", "6413", "239220e85470c99f53aa67a3f292c1d7af7b148ef2e48173f82f6472cede87a7", "sha256_hash", "payload", "win.asyncrat", "None", "AsyncRAT", "2026-09-27 08:07:53", "50", "False", "https://twitter.com/RedBeardIOCs/status/1377561479545827329", "asyncrat", "0", "Virus_Deck"
 "2021-03-12 07:04:00", "3479", "bba7662277de2d3b05c49fe4c183f307aa73478d30f1b7256755a1cc23f1511a", "sha256_hash", "payload", "win.formbook", "win.xloader", "Formbook", "2026-09-26 11:08:42", "50", "False", "https://twitter.com/RedBeardIOCs/status/1370269302713155584", "None", "0", "Virus_Deck"
 "2021-03-10 23:00:48", "3244", "d3fc5d2f230c3b00490e0e89f5e04aecb6e865913d2c43139a2e0ef28b03a2af", "sha256_hash", "payload", "win.snake", "EKANS,SNAKEHOSE", "Snake", "2026-09-26 11:10:22", "50", "False", "https://twitter.com/RedBeardIOCs/status/1369785301510590466", "None", "0", "Virus_Deck"
-# Number of entries: 31115
+# Number of entries: 31125
