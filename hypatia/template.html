@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index of / Hypatia Databases Hub</title>
+    <title>Hypatia 特征库与安全情报中心</title>
     <style>
         :root {
             --bg-color: #080c14;
@@ -61,7 +61,6 @@
             font-size: 0.92rem;
         }
 
-        /* 简介与特色卡片区 */
         .intro-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -94,7 +93,6 @@
             line-height: 1.5;
         }
 
-        /* 主体表格卡片 */
         .card-table {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
@@ -180,14 +178,14 @@
         }
 
         .badge-sig {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: var(--border-color);
-            color: var(--text-muted);
+            background: rgba(192, 132, 252, 0.1);
+            border-color: rgba(192, 132, 252, 0.3);
+            color: var(--accent-purple);
         }
 
         .badge-sig:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--text-main);
+            background: var(--accent-purple);
+            color: #080c14;
         }
 
         .footer {
@@ -214,56 +212,43 @@
 
     <div class="container">
         <header>
-            <h1>Index of / Hypatia Databases</h1>
-            <div class="subtitle">Automated High-Performance Security Signatures & Bloom Filters Hub &bull; Last Synced: {{GENERATION_TIME}} UTC</div>
+            <h1>Hypatia 特征库与安全情报中心</h1>
+            <div class="subtitle">高性能安全特征库与布隆过滤器自动构建中心 &bull; 最近同步时间：{{GENERATION_TIME}} UTC</div>
         </header>
 
-        <!-- 项目简介板块 -->
         <div class="intro-grid">
             <div class="intro-card">
-                <h3>🛡️ About Hypatia Engine</h3>
-                <p>Hypatia 是一个高性能的威胁情报与安全特征库匹配项目。本仓库通过全自动 CI 流水线定时聚合全球多方恶意软件情报源，编译为高效率的二进制布隆过滤器。</p>
+                <h3>🛡️ 关于 Hypatia 引擎</h3>
+                <p>Hypatia 是一个高性能的威胁情报与安全特征库匹配项目。本仓库通过全自动持续集成（CI）流水线定时聚合全球多方恶意软件情报源，编译为高效率的二进制布隆过滤器。</p>
             </div>
             <div class="intro-card">
-                <h3>🔐 Security & Verification</h3>
+                <h3>🔐 安全验证与签名</h3>
                 <p>所有生成的二进制数据库文件均经过严格的数字签名处理。您可配合页面提供的 <code>gpg.key</code> 公钥在本地验证其完整性与官方身份归属。</p>
             </div>
         </div>
 
-        <!-- 目录表格板块 -->
         <div class="card-table">
             <table>
                 <thead>
                     <tr>
-                        <th width="45%">File Name</th>
-                        <th width="30%">Last Modified (UTC)</th>
-                        <th width="25%">Actions / Signatures</th>
+                        <th width="45%">文件名</th>
+                        <th width="30%">最后修改时间 (UTC)</th>
+                        <th width="25%">操作 / 类型</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- 返回上级目录 -->
                     <tr>
                         <td>
                             <span class="file-name">
                                 <span class="file-icon">📁</span>
-                                <a href="../">Parent Directory</a>
+                                <a href="../">上级目录</a>
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">-</td>
                         <td>-</td>
                     </tr>
-                    <!-- hypatia 文件夹 -->
-                    <tr>
-                        <td>
-                            <span class="file-name">
-                                <span class="file-icon">📁</span>
-                                <a href="hypatia/">hypatia/</a>
-                            </span>
-                        </td>
-                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
-                        <td><span style="font-size: 0.85rem; color: var(--text-muted);">Storage & Raw Hub</span></td>
-                    </tr>
-                    <!-- 特征库文件与签名 -->
+
+                    <!-- MD5 数据库 -->
                     <tr>
                         <td>
                             <span class="file-name">
@@ -272,13 +257,20 @@
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
-                        <td>
-                            <div style="display: flex; gap: 6px;">
-                                <a href="hypatia/hypatia-md5-bloom.bin.sig" class="badge badge-sig">.sig</a>
-                                <a href="hypatia/hypatia-md5-bloom.bin" class="badge">Download</a>
-                            </div>
-                        </td>
+                        <td><a href="hypatia/hypatia-md5-bloom.bin" class="badge">下载</a></td>
                     </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📜</span>
+                                <a href="hypatia/hypatia-md5-bloom.bin.sig">hypatia-md5-bloom.bin.sig</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td><a href="hypatia/hypatia-md5-bloom.bin.sig" class="badge badge-sig">下载签名</a></td>
+                    </tr>
+
+                    <!-- SHA256 数据库 -->
                     <tr>
                         <td>
                             <span class="file-name">
@@ -287,13 +279,20 @@
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
-                        <td>
-                            <div style="display: flex; gap: 6px;">
-                                <a href="hypatia/hypatia-sha256-bloom.bin.sig" class="badge badge-sig">.sig</a>
-                                <a href="hypatia/hypatia-sha256-bloom.bin" class="badge">Download</a>
-                            </div>
-                        </td>
+                        <td><a href="hypatia/hypatia-sha256-bloom.bin" class="badge">下载</a></td>
                     </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📜</span>
+                                <a href="hypatia/hypatia-sha256-bloom.bin.sig">hypatia-sha256-bloom.bin.sig</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td><a href="hypatia/hypatia-sha256-bloom.bin.sig" class="badge badge-sig">下载签名</a></td>
+                    </tr>
+
+                    <!-- 域名数据库 -->
                     <tr>
                         <td>
                             <span class="file-name">
@@ -302,13 +301,20 @@
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
-                        <td>
-                            <div style="display: flex; gap: 6px;">
-                                <a href="hypatia/hypatia-domains-bloom.bin.sig" class="badge badge-sig">.sig</a>
-                                <a href="hypatia/hypatia-domains-bloom.bin" class="badge">Download</a>
-                            </div>
-                        </td>
+                        <td><a href="hypatia/hypatia-domains-bloom.bin" class="badge">下载</a></td>
                     </tr>
+                    <tr>
+                        <td>
+                            <span class="file-name">
+                                <span class="file-icon">📜</span>
+                                <a href="hypatia/hypatia-domains-bloom.bin.sig">hypatia-domains-bloom.bin.sig</a>
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
+                        <td><a href="hypatia/hypatia-domains-bloom.bin.sig" class="badge badge-sig">下载签名</a></td>
+                    </tr>
+
+                    <!-- GPG 公钥 -->
                     <tr>
                         <td>
                             <span class="file-name">
@@ -317,17 +323,15 @@
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">{{GENERATION_TIME}}</td>
-                        <td>
-                            <a href="hypatia/gpg.key" class="badge">Public Key</a>
-                        </td>
+                        <td><a href="hypatia/gpg.key" class="badge">公钥文件</a></td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <div class="footer">
-            <span>Powered by Hypatia Engine & GitHub Actions</span>
-            <a href="{{CI_BUILD_URL}}" target="_blank">View CI Build Logs ↗</a>
+            <span>由 Hypatia 引擎与 GitHub Actions 驱动</span>
+            <a href="{{CI_BUILD_URL}}" target="_blank">查看构建日志 ↗</a>
         </div>
     </div>
 
