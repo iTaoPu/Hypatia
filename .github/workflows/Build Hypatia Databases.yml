@@ -23,17 +23,14 @@ jobs:
           unzip -q /tmp/repo.zip -d /tmp/repo_extracted
           cp -r /tmp/repo_extracted/*/* ${{ github.workspace }}/ || true
 
-      - name: Dependency Setup
+      - name: Dependency Setup (Java, Maven, ClamAV)
         run: |
           sudo apt-get update -y
-          sudo apt install maven unzip git dos2unix tree -y
+          sudo apt install maven openjdk-17-jdk clamav clamav-daemon unzip git dos2unix tree -y
+          # 启动本地 ClamAV 守护进程供后续特征提取使用
+          sudo freshclam || true
+          sudo systemctl start clamav-daemon || true
 
-      - name: Start ClamAV daemon clamd
-        uses: toblux/start-clamd-github-action@v0.2.1
-        with:
-          db_main: true
-          db_daily: true
-      
       - name: Organize Directories & Static Sources
         run: |
           mkdir -p "${{ github.workspace }}/raw/"
@@ -49,10 +46,13 @@ jobs:
         run: |
           mkdir /tmp/mss
           cd /tmp/mss
-          cp /var/lib/clamav/main.c*d .
-          cp /var/lib/clamav/daily.c*d .
-          sigtool -u main.c*d
-          sigtool -u daily.c*d
+          # 从系统 ClamAV 目录安全复制特征库文件
+          if [ -d /var/lib/clamav ]; then
+            cp /var/lib/clamav/main.c*d . 2>/dev/null || true
+            cp /var/lib/clamav/daily.c*d . 2>/dev/null || true
+            sigtool -u main.c*d 2>/dev/null || true
+            sigtool -u daily.c*d 2>/dev/null || true
+          fi
 
           mv /tmp/mss/*.fp* "${{ github.workspace }}/exclusions/" || true
           mv /tmp/mss/*.hsb "${{ github.workspace }}/raw/" || true
@@ -85,38 +85,44 @@ jobs:
 
       - name: DATABASE PREPARATION - Signature-Base
         run: |
-          wget https://raw.githubusercontent.com/Neo23x0/signature-base/refs/heads/master/iocs/hash-iocs.txt -O "${{ github.workspace }}/raw/signature-base.loki"
+          wget https://raw.githubusercontent.com/Neo23x0/signature-base/refs/heads/master/iocs/hash-iocs.txt -O "${{ github.workspace }}/raw/signature-base.loki" || true
 
       - name: DATABASE PREPARATION - ThreatView
         run: |
-          wget "https://threatview.io/Downloads/MD5-HASH-ALL.txt" -O - | sed 's/MD5 of //' >> "${{ github.workspace }}/various/threatview.md5" || true
-          wget "https://threatview.io/Downloads/SHA-HASH-FEED.txt" -O - >> "${{ github.workspace }}/various/threatview.sha1" || true
+          wget "https://threatview.io/Downloads/MD5-HASH-ALL.txt" -O - 2>/dev/null | sed 's/MD5 of //' >> "${{ github.workspace }}/various/threatview.md5" || true
+          wget "https://threatview.io/Downloads/SHA-HASH-FEED.txt" -O - 2>/dev/null >> "${{ github.workspace }}/various/threatview.sha1" || true
 
           sort -u -o "${{ github.workspace }}/raw/threatview.md5" "${{ github.workspace }}/various/threatview.md5" || true
           sort -u -o "${{ github.workspace }}/raw/threatview.sha1" "${{ github.workspace }}/various/threatview.sha1" || true
 
       - name: DATABASE PREPARATION - ThreatFox
         run: |
-          wget "https://threatfox.abuse.ch/export/csv/sha256/full/" -O "${{ github.workspace }}/various/download_threatfox.zip"
-          unzip "${{ github.workspace }}/various/download_threatfox.zip" -d "${{ github.workspace }}/various/"
-          tail -n +10 "${{ github.workspace }}/various/full_sha256.csv" | awk '{ print $4 } ' | sed 's/^"//' | sed 's/",$//' > "${{ github.workspace }}/raw/threatfox.sha256"
+          wget "https://threatfox.abuse.ch/export/csv/sha256/full/" -O "${{ github.workspace }}/various/download_threatfox.zip" || true
+          if [ -f "${{ github.workspace }}/various/download_threatfox.zip" ]; then
+            unzip -o "${{ github.workspace }}/various/download_threatfox.zip" -d "${{ github.workspace }}/various/" || true
+            [ -f "${{ github.workspace }}/various/full_sha256.csv" ] && tail -n +10 "${{ github.workspace }}/various/full_sha256.csv" | awk '{ print $4 } ' | sed 's/^"//' | sed 's/",$//' > "${{ github.workspace }}/raw/threatfox.sha256" || true
+          fi
 
       - name: DATABASE PREPARATION - MalwareBazaar
         run: |
-          wget "https://bazaar.abuse.ch/export/txt/sha256/full/" -O "${{ github.workspace }}/various/download_bazaar.zip"
-          unzip "${{ github.workspace }}/various/download_bazaar.zip" -d "${{ github.workspace }}/various/"
-          mv "${{ github.workspace }}/various/full_sha256.txt" "${{ github.workspace }}/raw/malware_bazaar.sha256"
+          wget "https://bazaar.abuse.ch/export/txt/sha256/full/" -O "${{ github.workspace }}/various/download_bazaar.zip" || true
+          if [ -f "${{ github.workspace }}/various/download_bazaar.zip" ]; then
+            unzip -o "${{ github.workspace }}/various/download_bazaar.zip" -d "${{ github.workspace }}/various/" || true
+            [ -f "${{ github.workspace }}/various/full_sha256.txt" ] && mv "${{ github.workspace }}/various/full_sha256.txt" "${{ github.workspace }}/raw/malware_bazaar.sha256" || true
+          fi
 
       - name: DATABASE PREPARATION - Stalkerware
         run: |
-          wget "https://raw.githubusercontent.com/AssoEchap/stalkerware-indicators/refs/heads/master/samples.csv" -O "${{ github.workspace }}/various/stalkerware.csv"
-          while IFS=, read -r col1SHA col2Package col3Certificate col4Version col5Name
-          do
-            if [ -n "$col1SHA" ] && [ -n "$col5Name" ]; then
-              echo "$col1SHA:0:$col5Name" >> "${{ github.workspace }}/raw/stalkerware.hsb";
-            fi;
-          done < "${{ github.workspace }}/various/stalkerware.csv";
-          sed -i '1d' "${{ github.workspace }}/raw/stalkerware.hsb" || true
+          wget "https://raw.githubusercontent.com/AssoEchap/stalkerware-indicators/refs/heads/master/samples.csv" -O "${{ github.workspace }}/various/stalkerware.csv" || true
+          if [ -f "${{ github.workspace }}/various/stalkerware.csv" ]; then
+            while IFS=, read -r col1SHA col2Package col3Certificate col4Version col5Name
+            do
+              if [ -n "$col1SHA" ] && [ -n "$col5Name" ]; then
+                echo "$col1SHA:0:$col5Name" >> "${{ github.workspace }}/raw/stalkerware.hsb";
+              fi;
+            done < "${{ github.workspace }}/various/stalkerware.csv";
+            sed -i '1d' "${{ github.workspace }}/raw/stalkerware.hsb" || true
+          fi
 
       - name: DATABASE PREPARATION - Sanesecurity
         run: |
@@ -143,52 +149,58 @@ jobs:
       
       - name: DATABASE PREPERATION - Avast Covid-19 IOC
         run: |
-          git clone https://github.com/avast/covid-19-ioc.git /tmp/covid-19-ioc
-          cd "/tmp/covid-19-ioc/datasets/android"
-          tail -n +2 *.csv | sed 's/,/ , /' | awk '{ print $1 }' | sort -u  >> "${{ github.workspace }}/raw/avast-covid19.sha256"
+          git clone https://github.com/avast/covid-19-ioc.git /tmp/covid-19-ioc || true
+          if [ -d "/tmp/covid-19-ioc/datasets/android" ]; then
+            cd "/tmp/covid-19-ioc/datasets/android"
+            tail -n +2 *.csv 2>/dev/null | sed 's/,/ , /' | awk '{ print $1 }' | sort -u >> "${{ github.workspace }}/raw/avast-covid19.sha256" || true
+          fi
 
       - name: DATABASE PREPERATION - Targeted Threats
         run: |
-          git clone https://github.com/botherder/targetedthreats.git /tmp/targetedthreats
-          cd /tmp/targetedthreats
-          while IFS=, read -r col1MD5 col2SHA256 col3Family col4Actor col5Country col6Report
-          do
-            col4Actor=$(sed -e 's/^"//' -e 's/"$//' <<< "$col4Actor");
-            col3Family=$(sed -e 's/^"//' -e 's/"$//' <<< "$col3Family");
-            if [ -n "$col4Actor" ] && [ -n "$col3Family" ]; then
-                description="$col4Actor-$col3Family";
-            elif [ -n "$col4Actor" ] && [ -z "$col3Family" ]; then
-                description="$col4Actor";
-            elif [ -z "$col4Actor" ] && [ -n "$col3Family" ]; then
-                description="$col3Family";
-            fi;
-            if [ -z "$description" ]; then
-                description="targetedthreats";
-            fi;
-          
-            col1MD5=$(sed -e 's/^"//' -e 's/"$//' <<< "$col1MD5");
-            if [ -n "$col1MD5" ]; then
-                echo "$col1MD5:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hdb;
-            fi;
-          
-            col2SHA256=$(sed -e 's/^"//' -e 's/"$//' <<< "$col2SHA256");
-            if [ -n "$col2SHA256" ]; then
-                echo "$col2SHA256:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hsb;
-            fi;
-          done < samples.csv;
-          
-          sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hdb || true
-          sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hsb || true
+          git clone https://github.com/botherder/targetedthreats.git /tmp/targetedthreats || true
+          if [ -d "/tmp/targetedthreats" ]; then
+            cd /tmp/targetedthreats
+            if [ -f "samples.csv" ]; then
+              while IFS=, read -r col1MD5 col2SHA256 col3Family col4Actor col5Country col6Report
+              do
+                col4Actor=$(sed -e 's/^"//' -e 's/"$//' <<< "$col4Actor");
+                col3Family=$(sed -e 's/^"//' -e 's/"$//' <<< "$col3Family");
+                if [ -n "$col4Actor" ] && [ -n "$col3Family" ]; then
+                    description="$col4Actor-$col3Family";
+                elif [ -n "$col4Actor" ] && [ -z "$col3Family" ]; then
+                    description="$col4Actor";
+                elif [ -z "$col4Actor" ] && [ -n "$col3Family" ]; then
+                    description="$col3Family";
+                fi;
+                if [ -z "$description" ]; then
+                    description="targetedthreats";
+                fi;
+              
+                col1MD5=$(sed -e 's/^"//' -e 's/"$//' <<< "$col1MD5");
+                if [ -n "$col1MD5" ]; then
+                    echo "$col1MD5:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hdb;
+                fi;
+              
+                col2SHA256=$(sed -e 's/^"//' -e 's/"$//' <<< "$col2SHA256");
+                if [ -n "$col2SHA256" ]; then
+                    echo "$col2SHA256:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hsb;
+                fi;
+              done < samples.csv;
+              sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hdb || true
+              sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hsb || true
+            fi
+          fi
 
       - name: DATABASE PREPARATION - Divest Domains
         run: |
-          wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-               "https://divested.dev/hosts-domains" \
-               -O "${{ github.workspace }}/domains/divested.txt" || true
+          wget --user-agent="Mozilla/5.0" "https://divested.dev/hosts-domains" -O "${{ github.workspace }}/domains/divested.txt" || true
 
       - name: GENERATE HYPATIA SIGNATURE DATABASES 
         run: |
-          mvn -q -B --no-transfer-progress clean compile exec:java -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/" > "${{ github.workspace }}/various/generation_report.txt"
+          # 显式分离编译与执行，并在出错时打印详细堆栈信息
+          mvn clean compile
+          mvn exec:java -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/" > "${{ github.workspace }}/various/generation_report.txt"
+          
           cat "${{ github.workspace }}/various/generation_report.txt"
           echo "<pre>" >> "${{ github.workspace }}/various/generation_report.html"
           cat "${{ github.workspace }}/various/generation_report.txt" >> "${{ github.workspace }}/various/generation_report.html"
@@ -199,12 +211,12 @@ jobs:
       - name: Select and Process HTML Page (MaintainTeam Standard)
         run: |
           mkdir -p "${{ github.workspace }}/deploy"
-          cp "${{ github.workspace }}/raw/hypatia-domains-bloom.bin" "${{ github.workspace }}/deploy/"
-          cp "${{ github.workspace }}/raw/hypatia-md5-bloom.bin" "${{ github.workspace }}/deploy/"
-          cp "${{ github.workspace }}/raw/hypatia-sha1-bloom.bin" "${{ github.workspace }}/deploy/"
-          cp "${{ github.workspace }}/raw/hypatia-sha256-bloom.bin" "${{ github.workspace }}/deploy/"
-          cp "${{ github.workspace }}/various/generation_report.html" "${{ github.workspace }}/deploy/"
-          cp "${{ github.workspace }}/various/database_generation_ci.txt" "${{ github.workspace }}/deploy/"
+          cp "${{ github.workspace }}/raw/hypatia-domains-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-md5-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-sha1-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-sha256-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/various/generation_report.html" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/various/database_generation_ci.txt" "${{ github.workspace }}/deploy/" || true
           
           GEN_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "$GEN_TIME" > "${{ github.workspace }}/deploy/generation_time.html"
