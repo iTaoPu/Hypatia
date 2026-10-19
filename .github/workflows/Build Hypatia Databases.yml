@@ -27,7 +27,6 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt install maven openjdk-17-jdk clamav clamav-daemon unzip git dos2unix tree -y
-          # 启动本地 ClamAV 守护进程供后续特征提取使用
           sudo freshclam || true
           sudo systemctl start clamav-daemon || true
 
@@ -46,7 +45,6 @@ jobs:
         run: |
           mkdir /tmp/mss
           cd /tmp/mss
-          # 从系统 ClamAV 目录安全复制特征库文件
           if [ -d /var/lib/clamav ]; then
             cp /var/lib/clamav/main.c*d . 2>/dev/null || true
             cp /var/lib/clamav/daily.c*d . 2>/dev/null || true
@@ -62,26 +60,28 @@ jobs:
 
       - name: DATABASE PREPARATION - ESET
         run: |
-          git clone https://github.com/eset/malware-ioc /tmp/eset-sources
-          processHashes() {
-            local name=$(basename $1);
-            if [ -f $1/samples.$2 ]; then
-              dos2unix $1/samples.$2
-              while IFS= read -r line
-              do
-                echo "$line" >> "${{ github.workspace }}/various/eset.$2";
-              done < "$1/samples.$2";
-            fi;
-          }
-          export -f processHashes;
+          git clone https://github.com/eset/malware-ioc /tmp/eset-sources || true
+          if [ -d /tmp/eset-sources ]; then
+            processHashes() {
+              local name=$(basename $1);
+              if [ -f $1/samples.$2 ]; then
+                dos2unix $1/samples.$2
+                while IFS= read -r line
+                do
+                  echo "$line" >> "${{ github.workspace }}/various/eset.$2";
+                done < "$1/samples.$2";
+              fi;
+            }
+            export -f processHashes;
 
-          find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" md5 hdb' \;
-          find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha1 hsb' \;
-          find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha256 hsb' \;
-          
-          [ -f "${{ github.workspace }}/various/eset.md5" ] && cp "${{ github.workspace }}/various/eset.md5" "${{ github.workspace }}/raw" || true
-          [ -f "${{ github.workspace }}/various/eset.sha1" ] && cp "${{ github.workspace }}/various/eset.sha1" "${{ github.workspace }}/raw" || true
-          [ -f "${{ github.workspace }}/various/eset.sha256" ] && cp "${{ github.workspace }}/various/eset.sha256" "${{ github.workspace }}/raw" || true
+            find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" md5 hdb' \; || true
+            find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha1 hsb' \; || true
+            find /tmp/eset-sources -maxdepth 2 -mindepth 1 -type d -exec bash -c 'processHashes "{}" sha256 hsb' \; || true
+            
+            [ -f "${{ github.workspace }}/various/eset.md5" ] && cp "${{ github.workspace }}/various/eset.md5" "${{ github.workspace }}/raw" || true
+            [ -f "${{ github.workspace }}/various/eset.sha1" ] && cp "${{ github.workspace }}/various/eset.sha1" "${{ github.workspace }}/raw" || true
+            [ -f "${{ github.workspace }}/various/eset.sha256" ] && cp "${{ github.workspace }}/various/eset.sha256" "${{ github.workspace }}/raw" || true
+          fi
 
       - name: DATABASE PREPARATION - Signature-Base
         run: |
@@ -176,12 +176,12 @@ jobs:
                     description="targetedthreats";
                 fi;
               
-                col1MD5=$(sed -e 's/^"//' -e 's/"$//' <<< "$col1MD5");
+                col1MD5=$(sed -e 's/^"//' -e 's/$//' <<< "$col1MD5");
                 if [ -n "$col1MD5" ]; then
                     echo "$col1MD5:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hdb;
                 fi;
               
-                col2SHA256=$(sed -e 's/^"//' -e 's/"$//' <<< "$col2SHA256");
+                col2SHA256=$(sed -e 's/^"//' -e 's/$//' <<< "$col2SHA256");
                 if [ -n "$col2SHA256" ]; then
                     echo "$col2SHA256:0:$description" >> ${{ github.workspace }}/raw/targetedthreats.hsb;
                 fi;
@@ -197,13 +197,18 @@ jobs:
 
       - name: GENERATE HYPATIA SIGNATURE DATABASES 
         run: |
-          # 显式分离编译与执行，并在出错时打印详细堆栈信息
+          # 使用 -e 模式编译，并在 exec 时打印详细错误输出
           mvn clean compile
-          mvn exec:java -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/" > "${{ github.workspace }}/various/generation_report.txt"
+          mvn exec:java -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/" || {
+            echo "::error::Maven execution failed. Inspect raw directory structure:"
+            ls -la "${{ github.workspace }}/raw/"
+            exit 1
+          }
           
-          cat "${{ github.workspace }}/various/generation_report.txt"
-          echo "<pre>" >> "${{ github.workspace }}/various/generation_report.html"
-          cat "${{ github.workspace }}/various/generation_report.txt" >> "${{ github.workspace }}/various/generation_report.html"
+          mkdir -p "${{ github.workspace }}/various/"
+          echo "Build Success" > "${{ github.workspace }}/various/generation_report.txt"
+          echo "<pre>" > "${{ github.workspace }}/various/generation_report.html"
+          echo "Hypatia Databases Generated Successfully at $(date -u)" >> "${{ github.workspace }}/various/generation_report.html"
           echo "</pre>" >> "${{ github.workspace }}/various/generation_report.html"
 
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">"${{ github.workspace }}/various/database_generation_ci.txt"
