@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index of /hypatia/ - 原始数据与签名中心</title>
+    <style>
+        :root {
+            --bg-color: #080c14;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --tr-hover: rgba(56, 189, 248, 0.04);
+            --badge-bg: rgba(56, 189, 248, 0.1);
+            --badge-border: rgba(56, 189, 248, 0.25);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg-color) 75%); color: var(--text-main); min-height: 100vh; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 960px; }
+        header { margin-bottom: 25px; }
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+        .card-table { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); overflow: hidden; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
+        th { background-color: rgba(255, 255, 255, 0.02); color: var(--text-muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
+        td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--tr-hover); }
+        a { color: var(--accent-color); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--accent-hover); text-decoration: underline; }
+        .file-name { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; }
+        .badge { display: inline-block; background: var(--badge-bg); border: 1px solid var(--badge-border); color: var(--accent-color); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; }
+        .badge:hover { background: var(--accent-color); color: #080c14; }
+        .footer { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.85rem; padding: 0 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>hypatia/ 目录</h1>
+            <div class="subtitle">原始特征库源文件、编译产物与数字签名归档中心</div>
+        </header>
+        <div class="card-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="50%">文件名</th>
+                        <th width="25%">类型 / 说明</th>
+                        <th width="25%">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="file-name">📁 <a href="../">返回上级目录 (Parent Directory)</a></span></td>
+                        <td>根目录</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">🔑 <a href="gpg.key">gpg.key</a></span></td>
+                        <td>官方数字签名公钥</td>
+                        <td><a href="gpg.key" class="badge">下载公钥</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📦 <a href="hypatia-md5-bloom.bin">hypatia-md5-bloom.bin</a></span></td>
+                        <td>MD5 布隆过滤器二进制</td>
+                        <td><a href="hypatia-md5-bloom.bin" class="badge">下载</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📜 <a href="hypatia-md5-bloom.bin.sig">hypatia-md5-bloom.bin.sig</a></span></td>
+                        <td>MD5 过滤器数字签名</td>
+                        <td><a href="hypatia-md5-bloom.bin.sig" class="badge">下载</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📦 <a href="hypatia-sha256-bloom.bin">hypatia-sha256-bloom.bin</a></span></td>
+                        <td>SHA256 布隆过滤器二进制</td>
+                        <td><a href="hypatia-sha256-bloom.bin" class="badge">下载</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📜 <a href="hypatia-sha256-bloom.bin.sig">hypatia-sha256-bloom.bin.sig</a></span></td>
+                        <td>SHA256 过滤器数字签名</td>
+                        <td><a href="hypatia-sha256-bloom.bin.sig" class="badge">下载</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📦 <a href="hypatia-domains-bloom.bin">hypatia-domains-bloom.bin</a></span></td>
+                        <td>域名黑名单布隆过滤器</td>
+                        <td><a href="hypatia-domains-bloom.bin" class="badge">下载</a></td>
+                    </tr>
+                    <tr>
+                        <td><span class="file-name">📜 <a href="hypatia-domains-bloom.bin.sig">hypatia-domains-bloom.bin.sig</a></span></td>
+                        <td>域名过滤器数字签名</td>
+                        <td><a href="hypatia-domains-bloom.bin.sig" class="badge">下载</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            <span>Hypatia Data Hub</span>
+            <span>Last Synced: {{GENERATION_TIME}} UTC</span>
+        </div>
+    </div>
+</body>
+</html>
