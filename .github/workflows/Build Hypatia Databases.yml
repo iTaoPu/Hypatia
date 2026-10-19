@@ -204,7 +204,7 @@ jobs:
 
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">"${{ github.workspace }}/various/database_generation_ci.txt"
 
-      - name: Move Artifacts directly to Root Directory
+      - name: Move Artifacts, Export gpg.key and Sign
         run: |
           cp -f "${{ github.workspace }}/raw/"hypatia-*.bin "${{ github.workspace }}/" || true
           cp -f "${{ github.workspace }}/various/generation_report.html" "${{ github.workspace }}/" || true
@@ -219,6 +219,25 @@ jobs:
             sed -i "s|{{CI_BUILD_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" "${{ github.workspace }}/index.html"
           fi
 
+          # 自动导入私钥，导出 gpg.key，并对 .bin 文件签名
+          if [ -n "${{ secrets.GPG_PRIVATE_KEY }}" ]; then
+            echo "Importing GPG Private Key..."
+            echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import || true
+            
+            echo "Exporting public gpg.key..."
+            gpg --armor --export > "${{ github.workspace }}/gpg.key"
+            
+            for bin in ${{ github.workspace }}/hypatia-*.bin; do
+              if [ -f "$bin" ]; then
+                echo "Signing $bin ..."
+                rm -f "$bin.sig"
+                gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign "$bin"
+              fi
+            done
+          else
+            echo "GPG_PRIVATE_KEY secret is missing, skipping gpg.key export and signing."
+          fi
+
       - name: Commit and Push to main branch
         run: |
           git config --global user.name "github-actions[bot]"
@@ -227,14 +246,15 @@ jobs:
           cd "${{ github.workspace }}"
           
           git status
-          git add hypatia-*.bin generation_report.html database_generation_ci.txt index.html generation_time.html 2>/dev/null || true
+          git add hypatia-*.bin hypatia-*.bin.sig gpg.key generation_report.html database_generation_ci.txt index.html generation_time.html 2>/dev/null || true
           
-          git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e raw/ -e exclusions/ -e domains/ -e src/ -e pom.xml -e hypatia-*.bin -e index.html -e generation_report.html -e database_generation_ci.txt -e generation_time.html 2>/dev/null || true
+          # 清理临时文件，同时放行 .bin、.sig 和 gpg.key
+          git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e raw/ -e exclusions/ -e domains/ -e src/ -e pom.xml -e hypatia-*.bin -e hypatia-*.bin.sig -e gpg.key -e index.html -e generation_report.html -e database_generation_ci.txt -e generation_time.html 2>/dev/null || true
           
           if git diff --staged --quiet && [ -z "$(git status --porcelain)" ]; then
             echo "No changes to commit."
           else
             git add -A
-            git commit -m "Auto-update Hypatia databases directly to root [skip ci]"
+            git commit -m "Auto-update Hypatia databases, GPG signatures and gpg.key [skip ci]"
             git push origin main --force
           fi
