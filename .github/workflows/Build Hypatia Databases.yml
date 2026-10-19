@@ -12,24 +12,12 @@ jobs:
       contents: write
 
     steps:
-      - name: Download and Extract Repository Correctly
-        run: |
-          echo "Downloading repository source code via API..."
-          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               "https://api.github.com/repos/${{ github.repository }}/zipball/main" \
-               -o /tmp/repo.zip
-          
-          mkdir -p /tmp/repo_extracted
-          unzip -q /tmp/repo.zip -d /tmp/repo_extracted
-          
-          # 关键修复：精准定位 API 动态生成的顶层子目录并将其内容整体提升至工作区根目录
-          EXTRACTED_DIR=$(find /tmp/repo_extracted -mindepth 1 -maxdepth 1 -type d)
-          echo "Found extracted source dir: $EXTRACTED_DIR"
-          cp -r "$EXTRACTED_DIR"/* ${{ github.workspace }}/
-          cp -r "$EXTRACTED_DIR"/.[^.]* ${{ github.workspace }}/ 2>/dev/null || true
-          
-          echo "Verifying pom.xml location:"
-          ls -la ${{ github.workspace }}/pom.xml
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+          submodules: false
 
       - name: Dependency Setup (Java, Maven, ClamAV)
         run: |
@@ -160,7 +148,7 @@ jobs:
           git clone https://github.com/avast/covid-19-ioc.git /tmp/covid-19-ioc || true
           if [ -d "/tmp/covid-19-ioc/datasets/android" ]; then
             cd "/tmp/covid-19-ioc/datasets/android"
-            tail -n +2 *.csv 2>/dev/null | sed 's/,/ , /' | awk '{ print $1 }' \vert{} sort -u >> "${{ github.workspace }}/raw/avast-covid19.sha256" || true
+            tail -n +2 *.csv 2>/dev/null | sed 's/,/ , /' | awk '{ print $1 }' | sort -u >> "${{ github.workspace }}/raw/avast-covid19.sha256" || true
           fi
 
       - name: DATABASE PREPERATION - Targeted Threats
@@ -195,4 +183,62 @@ jobs:
                 fi;
               done < samples.csv;
               sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hdb || true
-              sed -i '1d'
+              sed -i '1d' ${{ github.workspace }}/raw/targetedthreats.hsb || true
+            fi
+          fi
+
+      - name: DATABASE PREPARATION - Divest Domains
+        run: |
+          wget --user-agent="Mozilla/5.0" "https://divested.dev/hosts-domains" -O "${{ github.workspace }}/domains/divested.txt" || true
+
+      - name: GENERATE HYPATIA SIGNATURE DATABASES
+        run: |
+          mvn clean compile -B --no-transfer-progress
+          mvn exec:java -B --no-transfer-progress -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/"
+          
+          mkdir -p "${{ github.workspace }}/various/"
+          echo "Build Success" > "${{ github.workspace }}/various/generation_report.txt"
+          echo "<pre>" > "${{ github.workspace }}/various/generation_report.html"
+          echo "Hypatia Databases Generated Successfully at $(date -u)" >> "${{ github.workspace }}/various/generation_report.html"
+          echo "</pre>" >> "${{ github.workspace }}/various/generation_report.html"
+
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">"${{ github.workspace }}/various/database_generation_ci.txt"
+
+      - name: Select and Process HTML Page (MaintainTeam Standard)
+        run: |
+          mkdir -p "${{ github.workspace }}/deploy"
+          cp "${{ github.workspace }}/raw/hypatia-domains-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-md5-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-sha1-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/raw/hypatia-sha256-bloom.bin" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/various/generation_report.html" "${{ github.workspace }}/deploy/" || true
+          cp "${{ github.workspace }}/various/database_generation_ci.txt" "${{ github.workspace }}/deploy/" || true
+          
+          GEN_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "$GEN_TIME" > "${{ github.workspace }}/deploy/generation_time.html"
+          
+          if [ -f "${{ github.workspace }}/static/template.html" ]; then
+            cp "${{ github.workspace }}/static/template.html" "${{ github.workspace }}/deploy/index.html"
+            sed -i "s|{{GENERATION_TIME}}|$GEN_TIME|g" "${{ github.workspace }}/deploy/index.html"
+            sed -i "s|{{CI_BUILD_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" "${{ github.workspace }}/deploy/index.html"
+          fi
+
+      - name: Commit and Push to main branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          cd "${{ github.workspace }}"
+          
+          git status
+          git add hypatia-*.bin generation_report.html database_generation_ci.txt index.html generation_time.html 2>/dev/null || true
+          
+          git clean -fd -e .github/ -e .git/ -e README.md -e static/ -e raw/ -e exclusions/ -e domains/ -e src/ -e pom.xml 2>/dev/null || true
+          
+          if git diff --staged --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to commit."
+          else
+            git add -A
+            git commit -m "Auto-update Hypatia databases and cleanup [skip ci]"
+            git push origin main --force
+          fi
