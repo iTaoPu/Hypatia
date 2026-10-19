@@ -195,15 +195,14 @@ jobs:
         run: |
           wget --user-agent="Mozilla/5.0" "https://divested.dev/hosts-domains" -O "${{ github.workspace }}/domains/divested.txt" || true
 
-      - name: GENERATE HYPATIA SIGNATURE DATABASES 
+      - name: GENERATE HYPATIA SIGNATURE DATABASES (Verbose Mode)
         run: |
-          # 使用 -e 模式编译，并在 exec 时打印详细错误输出
-          mvn clean compile
-          mvn exec:java -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/" || {
-            echo "::error::Maven execution failed. Inspect raw directory structure:"
-            ls -la "${{ github.workspace }}/raw/"
-            exit 1
-          }
+          # 打印 Maven 版本和环境，便于排查
+          mvn -version
+          
+          # 详细输出编译和执行日志
+          mvn clean compile -B --no-transfer-progress
+          mvn exec:java -B --no-transfer-progress -Dexec.mainClass="org.maintainteam.hypatiadatabases.App" -Dexec.args="${{ github.workspace }}/raw/ ${{ github.workspace }}/domains/divested.txt ${{ github.workspace }}/exclusions/"
           
           mkdir -p "${{ github.workspace }}/various/"
           echo "Build Success" > "${{ github.workspace }}/various/generation_report.txt"
